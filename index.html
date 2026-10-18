@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1120">
+  <meta name="description" content="Calculadora de costos y precios para impresión 3D.">
+  <title>PrintCost 3D — Calculadora de impresión</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="PrintCost 3D, inicio">
+        <span class="brand-mark" aria-hidden="true">⬡</span>
+        <span><strong>PrintCost <span>3D</span></strong><small>Calculadora de impresión</small></span>
+      </a>
+      <nav class="top-actions" aria-label="Navegación principal">
+        <button class="nav-btn active" data-view="calculator" type="button"><span aria-hidden="true">▦</span> Cotizar</button>
+        <button class="nav-btn" data-view="settings" type="button"><span aria-hidden="true">⚙</span> Configuración</button>
+        <button class="nav-btn" data-view="history" type="button"><span aria-hidden="true">◷</span> Historial <span id="history-count" class="count-badge">0</span></button>
+      </nav>
+    </header>
+
+    <main>
+      <section id="view-calculator" class="view">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">COTIZACIÓN RÁPIDA</p>
+            <h1>Calcula tu próxima impresión</h1>
+            <p class="muted">Ingresa los datos de la pieza. Tus costos habituales se administran en Configuración.</p>
+          </div>
+          <div class="status-pill"><span class="status-dot"></span> Cálculo local</div>
+        </div>
+
+        <div class="main-grid">
+          <form id="quote-form" class="panel form-panel" novalidate>
+            <div class="panel-heading">
+              <div><h2>Datos de la impresión</h2><p>Los campos con * son necesarios.</p></div>
+              <span class="step-icon">01</span>
+            </div>
+
+            <div class="field-grid">
+              <div class="field">
+                <label for="quote-name">Nombre de la pieza <span class="optional">(opcional)</span></label>
+                <input id="quote-name" type="text" maxlength="80" placeholder="Ej. Llavero de llamita">
+              </div>
+              <div class="field">
+                <label for="quote-material">Material / filamento</label>
+                <input id="quote-material" type="text" maxlength="50" placeholder="Ej. PLA mate">
+              </div>
+              <div class="field">
+                <label for="grams">Filamento por pieza (g) *</label>
+                <div class="input-wrap"><input id="grams" type="number" min="0.01" step="any" value="71" required><span>g</span></div>
+              </div>
+              <div class="field">
+                <label for="filament-price">Precio del filamento *</label>
+                <div class="input-wrap"><span class="prefix">S/</span><input id="filament-price" type="number" min="0" step="any" value="50" required><span class="suffix">/kg</span></div>
+              </div>
+              <div class="field">
+                <label>Tiempo de impresión por pieza *</label>
+                <div class="time-inputs">
+                  <div class="input-wrap"><input id="print-hours" type="number" min="0" max="10000" step="1" value="4" required aria-label="Horas de impresión"><span>h</span></div>
+                  <div class="input-wrap"><input id="print-minutes" type="number" min="0" max="59" step="1" value="18" required aria-label="Minutos de impresión"><span>min</span></div>
+                </div>
+              </div>
+              <div class="field">
+                <label for="manual-minutes">Trabajo manual por pieza</label>
+                <div class="input-wrap"><input id="manual-minutes" type="number" min="0" step="any" value="5"><span>min</span></div>
+                <small>Preparar, retirar, limpiar y revisar.</small>
+              </div>
+              <div class="field">
+                <label for="quantity">Cantidad a producir *</label>
+                <div class="input-wrap"><input id="quantity" type="number" min="1" max="100000" step="1" value="1" required><span>unid.</span></div>
+              </div>
+            </div>
+
+            <div class="section-divider"></div>
+            <div class="panel-heading compact">
+              <div><h2>Diseño y extras</h2><p>Completa solo lo que corresponda.</p></div>
+            </div>
+            <fieldset class="design-choice">
+              <legend>Origen del diseño</legend>
+              <label class="choice-card"><input type="radio" name="design-type" value="existing" checked><span class="choice-icon">▧</span><span><strong>Diseño existente</strong><small>Archivo ya preparado, por ejemplo de MakerWorld.</small></span></label>
+              <label class="choice-card"><input type="radio" name="design-type" value="own"><span class="choice-icon">✳</span><span><strong>Diseño propio</strong><small>Incluye el tiempo invertido en modelar la pieza.</small></span></label>
+            </fieldset>
+            <div id="design-fields" class="field-grid conditional-fields" hidden>
+              <div class="field">
+                <label for="design-hours">Horas invertidas en diseñar</label>
+                <div class="input-wrap"><input id="design-hours" type="number" min="0" step="any" value="3"><span>h</span></div>
+              </div>
+              <div class="field">
+                <label for="design-units">Unidades previstas para vender</label>
+                <div class="input-wrap"><input id="design-units" type="number" min="1" step="1" value="30"><span>unid.</span></div>
+              </div>
+              <p class="field-note full-span">El costo del diseño se reparte entre las unidades previstas, no se cobra completo en cada pieza.</p>
+            </div>
+
+            <div class="section-divider"></div>
+            <div class="extras-toggle-row">
+              <div><h3>Costos adicionales</h3><p class="muted">Empaque, argollas, imanes, pintura u otros.</p></div>
+              <label class="switch"><input type="checkbox" id="extras-enabled"><span class="slider"></span><span class="sr-only">Incluir costos adicionales</span></label>
+            </div>
+            <div id="extras-fields" class="field-grid conditional-fields" hidden>
+              <div class="field">
+                <label for="extras-unit">Extras por pieza (S/)</label>
+                <div class="input-wrap"><span class="prefix">S/</span><input id="extras-unit" type="number" min="0" step="any" value="0"></div>
+              </div>
+              <div class="field">
+                <label for="extras-batch">Extras por lote (S/)</label>
+                <div class="input-wrap"><span class="prefix">S/</span><input id="extras-batch" type="number" min="0" step="any" value="0"></div>
+              </div>
+            </div>
+
+            <div id="form-error" class="error-message" role="alert" hidden></div>
+            <button class="primary-btn full-width" type="submit"><span aria-hidden="true">✦</span> Calcular precio</button>
+            <p class="privacy-note"><span aria-hidden="true">▣</span> Tus datos se calculan en este navegador; no se envían a un servidor.</p>
+          </form>
+
+          <aside class="results-column">
+            <section class="panel result-panel" aria-live="polite">
+              <div class="panel-heading">
+                <div><p class="eyebrow">RESULTADO ESTIMADO</p><h2>Tu cotización</h2></div>
+                <span class="result-icon">↗</span>
+              </div>
+              <div class="price-highlight">
+                <span>Precio sugerido por pieza</span>
+                <div class="price-line"><span class="currency">S/</span><output id="unit-price">14.00</output></div>
+                <p id="price-caption">Recargo configurado: 100%</p>
+              </div>
+              <div class="result-stats">
+                <div><span>Costo por pieza</span><strong id="unit-cost">S/ 7.00</strong></div>
+                <div><span>Total del lote</span><strong id="batch-price">S/ 14.00</strong></div>
+                <div><span>Ganancia estimada por pieza</span><strong id="unit-profit">S/ 7.00</strong></div>
+              </div>
+              <div class="section-divider"></div>
+              <div class="breakdown-head"><h3>Desglose de costos</h3><button id="toggle-breakdown" class="text-btn" type="button">Ver detalle</button></div>
+              <div id="breakdown" class="breakdown" hidden></div>
+              <div class="result-actions">
+                <button id="save-quote" class="secondary-btn" type="button">Guardar cotización</button>
+                <button id="copy-quote" class="secondary-btn" type="button">Copiar resumen</button>
+              </div>
+              <p id="result-note" class="muted small">Estimación orientativa. Compara el precio sugerido con el mercado y revisa qué gastos están incluidos.</p>
+            </section>
+            <section class="tip-card">
+              <span class="tip-symbol">ⓘ</span>
+              <div><strong>Un precio sugerido no es una obligación</strong><p>Considera también la complejidad, el acabado, la personalización, las comisiones y lo que el cliente está dispuesto a pagar.</p></div>
+            </section>
+          </aside>
+        </div>
+      </section>
+
+      <section id="view-settings" class="view" hidden>
+        <div class="page-heading">
+          <div><p class="eyebrow">PREFERENCIAS</p><h1>Configuración avanzada</h1><p class="muted">Define tus costos habituales una vez. Se guardarán en este navegador y se aplicarán a tus próximas cotizaciones.</p></div>
+          <div class="status-pill"><span class="status-dot"></span> Guardado local</div>
+        </div>
+        <form id="settings-form" class="settings-layout">
+          <div class="settings-main">
+            <section class="panel settings-panel">
+              <div class="panel-heading"><div><h2>Electricidad y máquina</h2><p>Estimaciones de funcionamiento y mantenimiento.</p></div><span class="step-icon">01</span></div>
+              <div class="settings-grid">
+                <div class="field">
+                  <label for="cfg-electricity">Tarifa eléctrica con IGV <button class="info-btn" type="button" data-tip="electricity" aria-label="Información sobre tarifa eléctrica">i</button></label>
+                  <div class="input-wrap"><span class="prefix">S/</span><input id="cfg-electricity" type="number" min="0" step="any" value="0.9"><span class="suffix">/kWh</span></div>
+                  <small>Precio estimado por cada kilovatio-hora.</small>
+                </div>
+                <div class="field">
+                  <label for="cfg-watts">Consumo promedio de la impresora <button class="info-btn" type="button" data-tip="watts" aria-label="Información sobre consumo">i</button></label>
+                  <div class="input-wrap"><input id="cfg-watts" type="number" min="0" step="any" value="200"><span>W</span></div>
+                  <small>Potencia promedio estimada durante la impresión.</small>
+                </div>
+                <div class="field">
+                  <label for="cfg-wear">Desgaste y mantenimiento <button class="info-btn" type="button" data-tip="wear" aria-label="Información sobre desgaste">i</button></label>
+                  <div class="input-wrap"><span class="prefix">S/</span><input id="cfg-wear" type="number" min="0" step="any" value="0.3"><span class="suffix">/h</span></div>
+                  <small>Reserva para piezas, limpieza y mantenimiento.</small>
+                </div>
+                <div class="field">
+                  <label for="cfg-failure">Reserva para fallas <button class="info-btn" type="button" data-tip="failure" aria-label="Información sobre fallas">i</button></label>
+                  <div class="input-wrap"><input id="cfg-failure" type="number" min="0" max="100" step="any" value="10"><span>%</span></div>
+                  <small>Porcentaje aplicado a material, electricidad y desgaste.</small>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel settings-panel">
+              <div class="panel-heading"><div><h2>Valor de tu tiempo</h2><p>Asigna un valor económico a tu trabajo.</p></div><span class="step-icon">02</span></div>
+              <div class="settings-grid">
+                <div class="field">
+                  <label for="cfg-manual-rate">Valor de tu hora de trabajo manual <button class="info-btn" type="button" data-tip="manual" aria-label="Información sobre trabajo manual">i</button></label>
+                  <div class="input-wrap"><span class="prefix">S/</span><input id="cfg-manual-rate" type="number" min="0" step="any" value="10"><span class="suffix">/h</span></div>
+                  <small>Preparar, retirar, limpiar, revisar o empacar.</small>
+                </div>
+                <div class="field">
+                  <label for="cfg-design-rate">Valor de tu hora de diseño <button class="info-btn" type="button" data-tip="designRate" aria-label="Información sobre hora de diseño">i</button></label>
+                  <div class="input-wrap"><span class="prefix">S/</span><input id="cfg-design-rate" type="number" min="0" step="any" value="10"><span class="suffix">/h</span></div>
+                  <small>Valor del tiempo dedicado a modelar en Blender u otro programa.</small>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel settings-panel">
+              <div class="panel-heading"><div><h2>Precio y materiales</h2><p>Valores predeterminados para nuevas cotizaciones.</p></div><span class="step-icon">03</span></div>
+              <div class="settings-grid">
+                <div class="field">
+                  <label for="cfg-filament">Precio predeterminado del filamento <button class="info-btn" type="button" data-tip="filament" aria-label="Información sobre filamento">i</button></label>
+                  <div class="input-wrap"><span class="prefix">S/</span><input id="cfg-filament" type="number" min="0" step="any" value="50"><span class="suffix">/kg</span></div>
+                  <small>Se puede cambiar individualmente en cada cotización.</small>
+                </div>
+                <div class="field">
+                  <label for="cfg-markup">Recargo sobre el costo <button class="info-btn" type="button" data-tip="markup" aria-label="Información sobre recargo">i</button></label>
+                  <div class="input-wrap"><input id="cfg-markup" type="number" min="0" max="100000" step="any" value="100"><span>%</span></div>
+                  <small>Porcentaje que se agrega al costo calculado.</small>
+                </div>
+                <div class="field">
+                  <label for="cfg-fixed">Costo fijo por impresión <button class="info-btn" type="button" data-tip="fixed" aria-label="Información sobre costo fijo">i</button></label>
+                  <div class="input-wrap"><span class="prefix">S/</span><input id="cfg-fixed" type="number" min="0" step="any" value="0"></div>
+                  <small>Gasto adicional por trabajo, independiente de las horas o gramos.</small>
+                </div>
+              </div>
+            </section>
+            <div class="settings-actions">
+              <button class="primary-btn" type="submit">Guardar configuración</button>
+              <button id="reset-settings" class="secondary-btn" type="button">Restaurar valores iniciales</button>
+              <span id="settings-status" class="muted small" role="status"></span>
+            </div>
+          </div>
+          <aside class="panel settings-aside">
+            <span class="aside-icon">ⓘ</span>
+            <h3>¿Para qué sirve esta sección?</h3>
+            <p>Estos valores son tus supuestos habituales. Si cambia tu tarifa eléctrica, el costo de mantenimiento o cuánto valoras tu tiempo, actualízalos aquí.</p>
+            <p>Las explicaciones con el icono <span class="inline-info">i</span> incluyen un ejemplo para entender cada parámetro.</p>
+            <div class="section-divider"></div>
+            <h3>Ten en cuenta</h3>
+            <p>El consumo real de tu impresora puede variar por la temperatura, la cama caliente, el material y las condiciones del ambiente. El valor de 200 W es una aproximación configurable.</p>
+          </aside>
+        </form>
+      </section>
+
+      <section id="view-history" class="view" hidden>
+        <div class="page-heading">
+          <div><p class="eyebrow">TUS CÁLCULOS</p><h1>Historial de cotizaciones</h1><p class="muted">Se guarda en este navegador. No se sincroniza con otros dispositivos.</p></div>
+          <button id="clear-history" class="secondary-btn danger-btn" type="button">Borrar historial</button>
+        </div>
+        <div id="history-list" class="history-list"></div>
+        <div id="history-empty" class="panel empty-state"><span>◷</span><h2>Aún no hay cotizaciones guardadas</h2><p>Calcula un precio y pulsa “Guardar cotización” para verla aquí.</p><button class="primary-btn" type="button" data-view="calculator">Crear cotización</button></div>
+      </section>
+    </main>
+
+    <footer class="footer"><span>PrintCost 3D</span><span>Hecho para estimar, ajustar y cotizar mejor.</span></footer>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div id="tooltip-popover" class="tooltip-popover" role="dialog" aria-modal="false" aria-labelledby="tooltip-title" hidden>
+    <div class="tooltip-header"><h2 id="tooltip-title">Información</h2><button id="close-tooltip" class="icon-close" type="button" aria-label="Cerrar ayuda">×</button></div>
+    <div id="tooltip-content"></div>
+  </div>
+  <script src="js/storage.js"></script>
+  <script src="js/calculator.js"></script>
+  <script src="js/history.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
